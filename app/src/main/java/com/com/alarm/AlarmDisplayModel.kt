@@ -3,7 +3,7 @@ package com.com.alarm
 data class AlarmDisplayModel (
     val hour: Int,
     val minute: Int,
-    val onOff: Boolean
+    var onOff: Boolean
 ) {
     val timeText: String
         get() {
@@ -16,6 +16,11 @@ data class AlarmDisplayModel (
     val ampmText: String
         get() {
             return if(hour < 12) "AM" else "PM"
+        }
+
+    val onOffText: String
+        get() {
+            return if(onOff) "알람 끄기" else "알람 켜기"
         }
 
     fun makeDataForDB(): String {
