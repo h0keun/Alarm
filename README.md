@@ -1,3 +1,5 @@
+```💡 FastCampus 강의 수강 및 정리```
+
 ### Alarm
 + AlarmManager
 + Notification
@@ -36,5 +38,8 @@
 #### 기능
 + 지정된 시간에 알람이 울림
 + 지정된 시간 이후에는 매일 같은 시간에 반복된 알람설정
+
+
+<img src="https://user-images.githubusercontent.com/63087903/119833597-33066e80-bf3a-11eb-94e2-16dd5039135a.jpg" width="200" height="430"> <img src="https://user-images.githubusercontent.com/63087903/119833612-36015f00-bf3a-11eb-9a36-6b7f5382aa89.jpg" width="200" height="430"> <img src="https://user-images.githubusercontent.com/63087903/119833607-34d03200-bf3a-11eb-8137-d20f9ac98627.jpg" width="200" height="430">
 
 💡 PendingIntent 란??
