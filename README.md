@@ -45,8 +45,9 @@
 
 ### [2021-07-06]
 #### xml
-+ Constraint를 이용하여 각 뷰들을 배치시켰으며 특히 가운데에 나타나는 00:00(시간) 과 AM(PM) 표시를 다른 영역과 구분짓기위해  
-  background가 원의 형태인 drawablelayout을 구현하고 이를 View의 background에 지정 및 DimensionRatio를 1:1로 하여 화면 정중앙에 위치하도록 하였다.
++ Constraint를 이용하여 각 뷰들을 배치시켰으며 특히 가운데에 나타나는 00:00(시간) 과 AM(PM) 표시를  
+  다른 영역과 구분짓기위해 background가 원의 형태인 drawablelayout을 구현하고 이를  
+  xml에 생성한 View의 background에 지정 및 DimensionRatio를 1:1로 하여 화면 정중앙에 위치하도록 하였다.
   ```KOTLIN
   drawable레이아웃의 속성으로는 
   shape = "oval" // 원의 형태
@@ -66,7 +67,7 @@
   즉 위의 경우에서는 false로 두었기 때문에 해당 activity는 같은 앱 또는 사용자 ID가 같은 앱에서만 시작 할 수 있다.[📌](https://m.blog.naver.com/websearch/221668354461)
   
 #### Kotlin class
-+ alarm 패키지 내에 MainActivity, AlarmReceiver, AlarmDisplayModel 의 3의 코틀린 클래스들을 생성하였고 각각의 역할은 다음과 같다.
++ alarm 패키지 내에 MainActivity, AlarmReceiver, AlarmDisplayModel 의 3의 코틀린 클래스들을 생성하였고 각각의 역할은 다음과 같다.  
   - MainActivity :
   - AlarmDisplayModel : 알람 관련 데이터를 보관하는 모델클래스
   - AlarmReceiver :
