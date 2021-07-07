@@ -93,6 +93,19 @@
     * 때문에 데이터를 가져오는 함수가 실행되는 부분에서 sharedPreferences를 선언하고,  
       시간값 "00:00" 을 기본값으로, onoff여부는 false를 기본값으로 두어 모델클래스에 값을 할당한다.
       이를 통해 모델값을 렌더링하여 뷰를 그릴때에 값이 존재하지 않아 에러가 나는 상황을 방지하였다.
+      
+    private fun renderView(model: AlarmDisplayModel) {
+        findViewById<TextView>(R.id.ampmTextView).apply {
+            text = model.ampmText
+        }
+        findViewById<TextView>(R.id.timeTextView).apply {
+            text = model.timeText
+        }
+        findViewById<Button>(R.id.onOffButton).apply {
+            text = model.onOffText
+            tag = model
+        }
+    }
     ```
     모든 코드의 내용을 본문에 남을 수 없기 때문에 간단하게 구두로 작성하며 추후 보게 된다면, 해당코드를 띄워놓고 보는게 좋을 것 같다.  
     
@@ -100,8 +113,7 @@
     ```KOTLIN
     private fun initOnOfButton(){
     ...
-    }
-    
+    }    
     * 새로운 model을 정의하여 모델클레스의 정보를 할당한다. 
       fetchDataFromSharedPreferences() 에서 모델클래스에 값을 할당해 주었지만,  
       혹시모를 null에러를 방지하기위해 ?: return@setOnClickListener 를 통해 대응해 준다.
@@ -109,27 +121,35 @@
     * 모델클래스의 onoff 여부를 if~else 문을 통해 읽어들여서 처리하게 된다.  
       위에서 선언한 model 값이 모델클래스로부터 null이 아닌 값으로 잘 넘어왔다면  
       newModel이라는 새로운 객체를 생성하여 saveAlarmModel()함수에 정보를 담아 실행시키고,  
-      넘어온 데이터정보또한 renderView(newModel)를 통해 화면을 갱신해준다.
+      또한 renderView(model)를 통해 saveAlarmModel에서 리턴으로 받아온 모델값을 할당해주고 화면을 갱신한다.
       
     private fun saveAlarmModel(hour: Int, minute: Int, onOff: Boolean) : AlarmDisplayModel {
     ...
     }
+    * sharedpreferences를 통해 시간값과 onOff값을 저장해주고 모델클래스 값들을 리턴해준다.(기본값은 이미 선언되어있음!) 
       
-      
+    if (newModel.onOff) {
+    ...
+    } else {
+        cancelAlarm()
+    }
+    * fetchDataFromSharedPreferences() 에서 sharedPreferences를 선언하고 시간값은 "00:00" 의 기본값을,  
+      onoff에 대해선 false의 기본값을 지정해주고 모델클래스에 담아주었다. 때문에 initOnOffButton()에서 클릭이벤트 발생시에   
+      val newModel = saveAlarmModel(model.hour, model.minute, model.onOff.not()) // not() 이기 때문에 newModel.onOff는 true가 됨!
+      때문에 버튼 클릭할 때마다 if문과 else문이 번갈아가며 실행된다. 
     
-    fetchDataFromSharedPreferences() 에서 sharedPreferences를 선언하고 시간값은 "00:00" 의 기본값을, onoff에 대해선 false의 기본값을 지정해주고 모델클래스에 담아주었기 때문에 
-    * true 일 때는 알람메니져를 실행시키고, 이때
-    val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    val intent = Intent(this, AlarmReceiver::class.java)
-    val pendingIntent = PendingIntent.getBroadcast(this, ALARM_REQUEST_CODE,
+    * if문 => ON(true) 일 때는 알람메니져를 실행시키고,
+      val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+      val intent = Intent(this, AlarmReceiver::class.java)
+      val pendingIntent = PendingIntent.getBroadcast(this, ALARM_REQUEST_CODE,
               intent, PendingIntent.FLAG_UPDATE_CURRENT) // 현재가지고 있는 정보로 알람매니저 업데이트
 
-    alarmManager.setInexactRepeating(
-        AlarmManager.RTC_WAKEUP,
-        calendar.timeInMillis,
-        AlarmManager.INTERVAL_DAY,
-        pendingIntent
-    )
+      alarmManager.setInexactRepeating(
+          AlarmManager.RTC_WAKEUP,
+          calendar.timeInMillis,
+          AlarmManager.INTERVAL_DAY,
+          pendingIntent
+      )
     
     * false 일 때는 따로 지정한 함수 cancelAlarm() 을 실행 시켜서 알람메니져가 실행되는것을 막는다.
     private fun cancelAlarm() {
@@ -140,24 +160,58 @@
             PendingIntent.FLAG_NO_CREATE // 저장되어있던 알람매니저 정보 삭제
         )
         pendingIntent?.cancel()
-    }
-    각각의 상황에 맞추어 
-    
-    초기에 화면에 보여지는 뷰는 위에서 언급한 fetchDataFromSharedPreferences() 를 통해 데이터를 가져오고 renderView(model)을 통해 뷰를 그리게 된다. 저장 정보는 아래 모델클레스에 선언한 시간과 on/off 여부이다. 때문에
-    private fun fetchDataFromSharedPreferences(): AlarmDisplayModel {
-    ...
-    } 
-    영역에서 sharedpreferences 를 통해 defaultValue 값을 
-    
+    }    
     ```
-     ```KOTLIN
-    * 알람시간 설정 및 변경
-   
-    ```
+    ◼ 알람시간 설정 및 변경
     ```KOTLIN
-    * 알람관련 데이터 가져오기 및 화면에 뿌리기
-   
+    private fun initChangeAlarmTimeButton() {
+        val changeAlarmButton = findViewById<Button>(R.id.changeAlarmTimeButton)
+        changeAlarmButton.setOnClickListener {
+
+            val calendar = Calendar.getInstance()
+            TimePickerDialog(this, { picker, hour, minute ->
+
+                val model = saveAlarmModel(hour, minute, false)
+                renderView(model)
+                cancelAlarm()
+
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false)
+                .show()
+        }
+    }
+    
+    * 버튼클릭이벤트 발생시 캘린더를 읽어들여서 시간값을 적용한 다이얼로그를 띄워준다.
+      또한 각각의 정보들은 뷰를 갱신시키고(rederView) 기존에 존재하는 알람정보를 삭제(cancelAlarm)시켜주며,
+      saveAlarmModel을 통해 갱신된 시간정보를 저장하게된다.
+      
+    * 이후의 과정은 위와 동일한 상태가 됨!
     ```
+    ◼ 알람관련 데이터 가져오기 및 화면에 뿌리기
+    ```KOTLIN
+    * 위의 과정속에 저장되는 데이터정보를 받아 모델클래스에 할당하고 모델데이터값을 리턴시켜서 
+      onCreate의 renderView()를 통해 화면을 그리게 된다.
+      
+    * 이곳에서 수행하는 예외처리는 다음과같다.
+    val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            ALARM_REQUEST_CODE,
+            Intent(this, AlarmReceiver::class.java),
+            PendingIntent.FLAG_NO_CREATE // 저장되어있던 알람매니저 정보 삭제 실제 내용은 아래와 같음!
+        )                                
+     // Flag indicating that if the described PendingIntent already exists,
+     // the current one should be canceled before generating a new one. 
+     
+        if ((pendingIntent == null) and alarmModel.onOff) {
+            //알람은 꺼져있는데, 데이터는 켜져있는 경우
+            alarmModel.onOff = false
+        } else if ((pendingIntent != null) and alarmModel.onOff.not()) {
+            //알람은 켜져있는데, 데이터는 꺼져있는 경우
+            //알람을 취소함
+            pendingIntent.cancel()
+        }
+    ```
+    
+    
   - AlarmDisplayModel : 알람 관련 데이터를 보관하는 모델클래스이다.  
     ```KOTLIN
     * 직관적으로 이해가 되는 모델클레스이기 때문에 자세한 설명은 생략하며, 
@@ -190,9 +244,48 @@
         }
     }
     ```
-  - AlarmReceiver : BroadcastReceiver()를 상속받아 알람시간에 맞추어 notification을 띄워준다.
-    ```KOTLIN
     
+  - AlarmReceiver : BroadcastReceiver()를 상속받아 알람시간에 맞추어 notification을 띄워준다.  
+    딱히 어려운 내용이없어서 코드로 대체함!
+    ```KOTLIN
+    class AlarmReceiver: BroadcastReceiver() {
+
+        companion object {
+            const val NOTIFICATION_ID = 100
+            const val NOTIFICATION_CHANNEL_ID = "1000"
+        }
+
+        override fun onReceive(context: Context, intent: Intent) {
+
+            createNotificationChannel(context)
+            notifyNotification(context)
+        }
+
+        private fun createNotificationChannel(context: Context) {
+
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                val notificationChannel = NotificationChannel(
+                    NOTIFICATION_CHANNEL_ID,
+                    "기상 알림",
+                    NotificationManager.IMPORTANCE_HIGH
+                )
+
+                NotificationManagerCompat.from(context).createNotificationChannel(notificationChannel)
+            }
+        }
+
+        private fun notifyNotification(context: Context){
+            with(NotificationManagerCompat.from(context)){
+                val build = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                    .setContentTitle("알림")
+                    .setContentText("일어날 시간입니다.")
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+
+                notify(NOTIFICATION_ID, build.build())
+            }
+        }
+    }
     ``` 
   
 
@@ -216,8 +309,6 @@
   3. BroadcastReceiver를 시작하는 Intent의 경우 PendingIntent.getBroadcast()
   ```
   
-  
-💡 코틀린 캐스팅 is, as  
 💡 코틀린 get,set [📌](https://bbaktaeho-95.tistory.com/27), [📌](https://ddolcat.tistory.com/577), [📌](https://hongku.tistory.com/347)  
 ```KOTLIN
 자바의 경우 getter와 setter를 직접 구현해야 한다. 다행이도 안드로이드 스튜디오에서는 자동 생성을 지원한다.  
@@ -231,3 +322,5 @@
 Tags can also be used to store data within a view without resorting to another data structure
 ```
 데이터 저장하는데 활용하는 것 같은데, 이 프로젝트에서는 ON/OFF 버튼 관련해서 모델클래스를 통해 뷰를 렌더링 할 때 사용하였다. 추가적으로 정보탐색이 필요함! 
+
+💡 코틀린 타입캐스팅 알아보기
